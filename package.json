@@ -9,9 +9,13 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ai-sdk/google": "^0.0.51",
+    "ai": "^3.4.7",
+    "geist": "1.1.0",
+    "next": "14.2.13",
     "react": "^18",
     "react-dom": "^18",
-    "next": "14.2.13"
+    "react-loader-spinner": "^6.1.6"
   },
   "devDependencies": {
     "typescript": "^5",
