@@ -5,13 +5,12 @@ import { Button } from '&/components/ui/button'
 import { Input } from '&/components/ui/input'
 import { ScrollArea } from '&/components/ui/scroll-area'
 import { Card, CardContent } from '&/components/ui/card'
-import { ArrowUp, Camera, Mic, Paperclip, Webcam, X } from 'lucide-react'
+import { ArrowUp, Mic, Paperclip, X } from 'lucide-react'
 import { toast } from '&/hooks/use-toast'
 import Image from 'next/image'
 import { CoreMessage } from 'ai'
 import { sendPromptToAI } from '&/action'
 import { readStreamableValue } from 'ai/rsc'
-import Cam from 'react-webcam'
 
 type Message = CoreMessage & { dataURL?: string }
 
@@ -23,9 +22,6 @@ export function ChatUI() {
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [isCapturing, setIsCapturing] = useState(false)
-  const [isRecording, setIsRecording] = useState(false)
-  const webcamRef = useRef(null)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: `smooth` })
@@ -49,7 +45,6 @@ export function ChatUI() {
       }
       const newMessages = [...messages, newUserMessage]
       setMessages(newMessages)
-      setIsCapturing(false)
       setInputText(``)
       setMediaPreview(null)
 
@@ -104,7 +99,7 @@ export function ChatUI() {
     try {
       recognition.start()
       setIsListening(true)
-    } catch (err: any) {
+    } catch (err: unknown) {
       setIsListening(false)
       toast({
         title: `Speech Recognition Error`,
@@ -128,13 +123,6 @@ export function ChatUI() {
   const removeMedia = () => {
     setMediaPreview(null)
     if (fileInputRef.current) fileInputRef.current.value = ''
-  }
-
-  const capture = () => {
-    setIsCapturing(true)
-    // @ts-ignore
-    const imageSrc = webcamRef.current?.getScreenshot()
-    setMediaPreview(imageSrc)
   }
 
   return (
@@ -178,39 +166,24 @@ export function ChatUI() {
         </ScrollArea>
         <form onSubmit={handleSubmit}>
           <div className='p-4 bg-[#F5F5F5] border-t border-gray-200'>
-            {isCapturing ? (
-              <Cam
-                audio={false}
-                height={80}
-                ref={webcamRef}
-                screenshotFormat='image/jpeg'
-                width={142}
-                videoConstraints={{
-                  facingMode: `environment`,
-                  width: 142,
-                  height: 80,
-                }}
-              />
-            ) : (
-              mediaPreview && (
-                <div className='relative mb-2'>
-                  <Image
-                    src={mediaPreview}
-                    alt='Media preview'
-                    width={80}
-                    height={80}
-                    className='object-cover rounded-lg'
-                  />
-                  <Button
-                    size='icon'
-                    variant='destructive'
-                    className='absolute -top-2 -right-2 rounded-full w-6 h-6'
-                    onClick={removeMedia}
-                  >
-                    <X className='w-4 h-4' />
-                  </Button>
-                </div>
-              )
+            {mediaPreview && (
+              <div className='relative mb-2'>
+                <Image
+                  src={mediaPreview}
+                  alt='Media preview'
+                  width={80}
+                  height={80}
+                  className='object-cover rounded-lg'
+                />
+                <Button
+                  size='icon'
+                  variant='destructive'
+                  className='absolute -top-2 -right-2 rounded-full w-6 h-6'
+                  onClick={removeMedia}
+                >
+                  <X className='w-4 h-4' />
+                </Button>
+              </div>
             )}
             <div className='flex items-center space-x-2 bg-white rounded-full px-4 py-2'>
               <Input
@@ -237,15 +210,6 @@ export function ChatUI() {
                 accept='image/*,video/*'
                 className='hidden'
               />
-              <Button
-                onClick={capture}
-                size='icon'
-                variant='ghost'
-                className='rounded-full'
-                aria-label='Capture photo or video'
-              >
-                <Camera className='h-4 w-4' />
-              </Button>
               <Button
                 onClick={startSpeechRec}
                 size='icon'

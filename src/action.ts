@@ -4,29 +4,7 @@ import { createStreamableValue } from 'ai/rsc'
 import { CoreMessage, streamText } from 'ai'
 import { google } from '@ai-sdk/google'
 
-interface ScamAnalysisResult {
-  overallThreatLevel: 'Low' | 'Medium' | 'High'
-  confidenceScore: number // 0 to 1
-  potentialThreats: {
-    type:
-      | 'Phishing'
-      | 'Malware'
-      | 'Financial Scam'
-      | 'Identity Theft'
-      | 'Fake Offer'
-    description: string
-    severity: 'Low' | 'Medium' | 'High'
-  }[]
-  suspiciousElements: {
-    type: 'URL' | 'Email Address' | 'Phone Number' | 'Text Content'
-    value: string
-    reason: string
-  }[]
-  safetyTips: string[]
-  recommendedActions: string[]
-}
-
-const SYSTEM_INSTRUCTION = `You are an AI assistant specialized in detecting and analyzing potential scams, particularly those targeting senior citizens. Your primary function is to analyze text inputs (such as emails, messages, or website content) and provide a structured assessment of potential threats. Follow these guidelines:
+const SYSTEM_INSTRUCTION_TEXT = `You are an AI assistant specialized in detecting and analyzing potential scams, particularly those targeting senior citizens. Your primary function is to analyze text inputs (such as emails, messages, or website content) and provide a structured assessment of potential threats. Follow these guidelines:
 
 1. Analyze the input thoroughly for signs of common scams, including but not limited to phishing, financial fraud, identity theft, and malware distribution.
 
@@ -46,11 +24,14 @@ const SYSTEM_INSTRUCTION = `You are an AI assistant specialized in detecting and
 
 9. If you're unsure about any aspect of the analysis, reflect this in the confidence score and mention it in the output.
 
-10. Remember that your audience may not be tech-savvy. Use clear, simple language in all explanations.
+10. Remember that your audience may not be tech-savvy. Use clear, simple language in all explanations.`
+
+const SYSTEM_INSTRUCTION_CHAT = `${SYSTEM_INSTRUCTION_TEXT}
 
 Output your analysis in the following JSON structure:
 
 {
+  "isScam": boolean,
   "overallThreatLevel": "Low" | "Medium" | "High",
   "confidenceScore": number, // 0 to 1
   "potentialThreats": [
@@ -74,10 +55,20 @@ Output your analysis in the following JSON structure:
 
 Ensure your analysis is thorough, accurate, and helpful for senior citizens trying to protect themselves from online scams and fraud.`
 
+export async function analyseText(prompt: string) {
+  const result = await streamText({
+    model: google(`models/gemini-1.5-flash-latest`),
+    system: SYSTEM_INSTRUCTION_TEXT,
+    prompt,
+  })
+  const stream = createStreamableValue(result.textStream)
+  return stream.value
+}
+
 export async function sendPromptToAI(messages: CoreMessage[]) {
   const result = await streamText({
     model: google(`models/gemini-1.5-flash-latest`),
-    system: SYSTEM_INSTRUCTION,
+    system: SYSTEM_INSTRUCTION_CHAT,
     messages,
   })
   const stream = createStreamableValue(result.textStream)
