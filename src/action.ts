@@ -1,10 +1,11 @@
 'use server'
 
 import { createStreamableValue } from 'ai/rsc'
-import { CoreMessage, streamText } from 'ai'
+import { CoreMessage, generateObject, streamText } from 'ai'
 import { google } from '@ai-sdk/google'
+import { scamSchema } from './type'
 
-const SYSTEM_INSTRUCTION_TEXT = `You are an AI assistant specialized in detecting and analyzing potential scams, particularly those targeting senior citizens. Your primary function is to analyze text inputs (such as emails, messages, or website content) and provide a structured assessment of potential threats. Follow these guidelines:
+const SYSTEM_INSTRUCTION_CHAT = `You are an AI assistant specialized in detecting and analyzing potential scams, particularly those targeting senior citizens. Your primary function is to analyze text inputs (such as emails, messages, or website content) and provide a structured assessment of potential threats. Follow these guidelines:
 
 1. Analyze the input thoroughly for signs of common scams, including but not limited to phishing, financial fraud, identity theft, and malware distribution.
 
@@ -26,7 +27,7 @@ const SYSTEM_INSTRUCTION_TEXT = `You are an AI assistant specialized in detectin
 
 10. Remember that your audience may not be tech-savvy. Use clear, simple language in all explanations.`
 
-const SYSTEM_INSTRUCTION_CHAT = `${SYSTEM_INSTRUCTION_TEXT}
+const SYSTEM_INSTRUCTION_TEXT = `${SYSTEM_INSTRUCTION_CHAT}
 
 Output your analysis in the following JSON structure:
 
@@ -56,20 +57,23 @@ Output your analysis in the following JSON structure:
 Ensure your analysis is thorough, accurate, and helpful for senior citizens trying to protect themselves from online scams and fraud.`
 
 export async function analyseText(prompt: string) {
-  const result = await streamText({
+  console.log(prompt)
+  const { object } = await generateObject({
     model: google(`models/gemini-1.5-flash-latest`),
     system: SYSTEM_INSTRUCTION_TEXT,
+    schema: scamSchema,
     prompt,
   })
-  const stream = createStreamableValue(result.textStream)
-  return stream.value
+  return object
 }
 
-export async function sendPromptToAI(messages: CoreMessage[]) {
+export async function analyseChat(messages: CoreMessage[]) {
   const result = await streamText({
     model: google(`models/gemini-1.5-flash-latest`),
     system: SYSTEM_INSTRUCTION_CHAT,
     messages,
+    maxSteps: 2,
+    experimental_continueSteps: true,
   })
   const stream = createStreamableValue(result.textStream)
   return stream.value
