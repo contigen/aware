@@ -20,7 +20,7 @@ export default function Page() {
         <div className='flex items-start'>
           <Eye className='text-blue-500 mr-4' size={24} />
           <div>
-            <h3 className='font-bold mb-2'>Verify Sender's Identity</h3>
+            <h3 className='font-bold mb-2'>Verify Sender’s Identity</h3>
             <p>
               Double-check email addresses and website URLs for authenticity.
             </p>
