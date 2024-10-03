@@ -39,6 +39,7 @@ One of the main lessons was understanding how to build something accessible to a
 - Vercel AI SDK
 - TailwindCSS
 - Radix UI
+- Zod to provide schema for AI structured output
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
