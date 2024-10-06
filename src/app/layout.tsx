@@ -3,7 +3,7 @@ import { GeistSans } from 'geist/font/sans'
 import './globals.css'
 import { Toaster } from '&/components/ui/toaster'
 import { Navbar } from '&/components/ui/navbar'
-import { Button } from '&/components/ui/button'
+import { Footer } from '&/components/ui/footer'
 
 export const metadata: Metadata = {
   title: 'Aware',
@@ -21,22 +21,7 @@ export default function RootLayout({
         <div className='min-h-dvh flex flex-col'>
           <Navbar />
           <section className='flex-grow'>{children}</section>
-          <footer className='p-4 bg-blue-600 text-white'>
-            <div className='container mx-auto flex justify-between items-center'>
-              <p>&copy; {new Date().getFullYear()} Aware</p>
-              <ul className='flex space-x-4'>
-                <li>
-                  <Button variant='link'>Privacy Policy</Button>
-                </li>
-                <li>
-                  <Button variant='link'>Terms of Service</Button>
-                </li>
-                <li>
-                  <Button variant='link'>Contact Support</Button>
-                </li>
-              </ul>
-            </div>
-          </footer>
+          <Footer />
         </div>
         <Toaster />
       </body>
