@@ -3,15 +3,13 @@
 import { createStreamableValue } from 'ai/rsc'
 import { CoreMessage, generateObject, streamText } from 'ai'
 import { google } from '@ai-sdk/google'
-import { scamSchema } from './type'
+import { ScamAnalysisResult, scamSchema } from './types'
 
-const SYSTEM_INSTRUCTION_CHAT = `You are an AI assistant specialized in detecting and analyzing potential scams, particularly those targeting senior citizens. Your primary function is to analyze text inputs (such as emails, messages, or website content) and provide a structured assessment of potential threats. Follow these guidelines:
+const SYSTEM_INSTRUCTION_CHAT = `You are an AI assistant specialized in detecting and analyzing potential scams, particularly those targeting senior citizens. Your primary function is to analyze text inputs (such as emails, messages, or website content) Follow these guidelines:
 
 1. Analyze the input thoroughly for signs of common scams, including but not limited to phishing, financial fraud, identity theft, and malware distribution.
 
 2. Maintain a calm, reassuring tone in your analysis. Avoid using alarmist language that might cause undue panic.
-
-3. Provide your analysis in a structured JSON format as defined below. Ensure all fields are filled with appropriate, relevant information.
 
 4. Base your threat assessments on factual indicators present in the text. Avoid speculation or assumptions beyond what's directly evident.
 
@@ -21,11 +19,12 @@ const SYSTEM_INSTRUCTION_CHAT = `You are an AI assistant specialized in detectin
 
 7. If the input appears to be benign, still provide a full analysis explaining why it's considered safe.
 
-8. Do not include any personally identifiable information in your output, even if present in the input.
 
-9. If you're unsure about any aspect of the analysis, reflect this in the confidence score and mention it in the output.
+8. If you're unsure about any aspect of the analysis, reflect this in the confidence score and mention it in the output.
 
-10. Remember that your audience may not be tech-savvy. Use clear, simple language in all explanations.`
+9. Remember that your audience may not be tech-savvy. Use clear, simple language in all explanations.
+
+Ensure your analysis is thorough, accurate, and helpful for senior citizens trying to protect themselves from online scams; provide adequate information to the user on-demand.`
 
 const SYSTEM_INSTRUCTION_TEXT = `${SYSTEM_INSTRUCTION_CHAT}
 
@@ -53,27 +52,29 @@ Output your analysis in the following JSON structure:
   "recommendedActions": [string],
   "summary": string // A brief, easy-to-understand summary of the analysis
 }
+  note: media content is also supported, return the response in the same format as the text content.
+`
 
-Ensure your analysis is thorough, accurate, and helpful for senior citizens trying to protect themselves from online scams and fraud.`
-
-export async function analyseText(prompt: string) {
-  console.log(prompt)
+export async function analyseText(messages: CoreMessage[]) {
   const { object } = await generateObject({
-    model: google(`models/gemini-1.5-flash-latest`),
+    model: google(`models/gemini-1.5-flash-8b`),
     system: SYSTEM_INSTRUCTION_TEXT,
     schema: scamSchema,
-    prompt,
+    messages,
   })
   return object
 }
 
-export async function analyseChat(messages: CoreMessage[]) {
+export async function analyseChat(
+  messages: CoreMessage[],
+  analysisResult: ScamAnalysisResult
+) {
   const result = await streamText({
-    model: google(`models/gemini-1.5-flash-latest`),
-    system: SYSTEM_INSTRUCTION_CHAT,
+    model: google(`models/gemini-1.5-flash-8b`),
+    system: `${SYSTEM_INSTRUCTION_CHAT} \n Here is a previous analysis result, use it as context to respond to the user's message: ${JSON.stringify(
+      analysisResult
+    )} \n if it's empty, proceed to generate your own analysis strictly based on the user's input and respond accordingly, as an assistant`,
     messages,
-    maxSteps: 2,
-    experimental_continueSteps: true,
   })
   const stream = createStreamableValue(result.textStream)
   return stream.value
