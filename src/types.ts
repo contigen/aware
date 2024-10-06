@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod'
 
 export type ScamAnalysisResult = {
   isScam: boolean
@@ -23,7 +23,6 @@ export type ScamAnalysisResult = {
   recommendedActions: string[]
   summary: string
 }
-
 
 export const scamSchema = z.object({
   isScam: z.boolean(),
@@ -52,5 +51,10 @@ export const scamSchema = z.object({
   safetyTips: z.array(z.string()),
   recommendedActions: z.array(z.string()),
   summary: z.string(),
-});
+})
 
+export type stateField<T> = {
+  [K in keyof T]: {
+    [P in K]: T[P]
+  }
+}[keyof T]
