@@ -11,17 +11,46 @@ import Image from 'next/image'
 import { CoreMessage } from 'ai'
 import { analyseChat } from '&/action'
 import { readStreamableValue } from 'ai/rsc'
+import { ScamAnalysisResult } from '&/types'
+import { useSpeechRecognition } from '&/features/speech-recognition/use-speech-recognition'
 
 type Message = CoreMessage & { dataURL?: string }
 
-export function ChatUI() {
+export function ChatUI({
+  analysisResult,
+}: {
+  analysisResult: ScamAnalysisResult
+}) {
   const [messages, setMessages] = useState<Message[]>([])
   const [inputText, setInputText] = useState('')
   const [isListening, setIsListening] = useState(false)
-  const [mediaPreview, setMediaPreview] = useState<string | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const {
+    Recognition,
+    startSpeechRec,
+    stopSpeechRec,
+    transcript: { preview, note },
+  } = useSpeechRecognition()
+
+  function handleSpeechRec() {
+    if (!Recognition) {
+      toast({
+        title: `Speech Recognition Unavailable`,
+        description: `Your browser doesn't support speech recognition. Please try using a different browser or input your message manually.`,
+        variant: `destructive`,
+      })
+      return
+    }
+    setIsListening(prev => !prev)
+    if (isListening) {
+      stopSpeechRec()
+    } else {
+      startSpeechRec()
+    }
+  }
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: `smooth` })
@@ -33,22 +62,22 @@ export function ChatUI() {
 
   const handleSubmit = async (evt: FormEvent) => {
     evt.preventDefault()
-    if (inputText.trim() || mediaPreview) {
+    if (inputText.trim() || previewUrl) {
       const newUserMessage: CoreMessage = {
         role: `user`,
-        content: mediaPreview
+        content: previewUrl
           ? [
               { type: `text`, text: inputText },
-              { type: `image`, image: mediaPreview },
+              { type: `image`, image: previewUrl },
             ]
           : inputText,
       }
       const newMessages = [...messages, newUserMessage]
       setMessages(newMessages)
       setInputText(``)
-      setMediaPreview(null)
+      setPreviewUrl(null)
 
-      const result = await analyseChat(newMessages)
+      const result = await analyseChat(newMessages, analysisResult)
 
       for await (const content of readStreamableValue(result)) {
         setMessages([
@@ -62,69 +91,27 @@ export function ChatUI() {
     }
   }
 
-  const startSpeechRec = () => {
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition
-
-    if (!SpeechRecognition) {
-      toast({
-        title: `Speech Recognition Unavailable`,
-        description: `Your browser doesn't support speech recognition. Please try using a different browser or input your message manually.`,
-        variant: `destructive`,
-      })
-      return
-    }
-
-    const recognition = new SpeechRecognition()
-
-    recognition.onresult = event => {
-      const transcript = event.results[0][0].transcript
-      setInputText(prevText => `${prevText} ${transcript}`)
-    }
-
-    recognition.onend = () => {
-      setIsListening(false)
-    }
-
-    recognition.onerror = event => {
-      console.error(`Speech recognition error`, event.error)
-      setIsListening(false)
-      toast({
-        title: `Speech Recognition Error`,
-        description: `An error occurred: ${event.error}. Please try again or input your message manually.`,
-        variant: `destructive`,
-      })
-    }
-
-    try {
-      recognition.start()
-      setIsListening(true)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
-      setIsListening(false)
-      toast({
-        title: `Speech Recognition Error`,
-        description: `Failed to start speech recognition. ${err.message}`,
-        variant: `destructive`,
-      })
-    }
-  }
-
   const handleFileUpload = (evt: ChangeEvent<HTMLInputElement>) => {
     const file = evt.target.files?.[0]
     if (file) {
       const reader = new FileReader()
       reader.onloadend = () => {
-        setMediaPreview(reader.result as string)
+        setPreviewUrl(reader.result as string)
       }
       reader.readAsDataURL(file)
     }
   }
 
   const removeMedia = () => {
-    setMediaPreview(null)
+    setPreviewUrl(null)
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
+
+  useEffect(() => {
+    if (note) {
+      setInputText(note)
+    } else setInputText(preview)
+  }, [note, preview])
 
   return (
     <Card className='h-[600px] flex flex-col bg-gradient-to-b from-gray-50 to-gray-100 overflow-hidden rounded-3xl shadow border border-gray-200'>
@@ -145,7 +132,7 @@ export function ChatUI() {
                 } mb-4`}
               >
                 <div
-                  className={`max-w-[70%] p-3 rounded-2xl ${
+                  className={`max-w-[70%] break-words p-3 rounded-2xl ${
                     message.role === 'user'
                       ? 'bg-blue-500 text-white'
                       : 'bg-[#E5E5EA] text-black'
@@ -167,10 +154,10 @@ export function ChatUI() {
         </ScrollArea>
         <form onSubmit={handleSubmit}>
           <div className='p-4 bg-[#F5F5F5] border-t border-gray-200'>
-            {mediaPreview && (
+            {previewUrl && (
               <div className='relative mb-2'>
                 <Image
-                  src={mediaPreview}
+                  src={previewUrl}
                   alt='Media preview'
                   width={80}
                   height={80}
@@ -212,11 +199,11 @@ export function ChatUI() {
                 className='hidden'
               />
               <Button
-                onClick={startSpeechRec}
+                onClick={handleSpeechRec}
                 size='icon'
                 variant='ghost'
                 className={`rounded-full ${
-                  isListening ? 'bg-red-500 text-white' : ''
+                  isListening ? `bg-red-500 text-white` : ``
                 }`}
                 aria-label='Voice input'
                 type='button'
