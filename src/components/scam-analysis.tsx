@@ -113,11 +113,10 @@ function ScamAnalysis({ result }: { result: ScamAnalysisResult }) {
     setIsReading(prev => !prev)
     if (isReading) {
       pause()
-      // } else if (!isReading && !hasCompletedReading) {
-      //   // resume()
-      //   speak()
-    } else {
+    } else if (!isReading && hasCompletedReading) {
       speak()
+    } else {
+      resume()
     }
   }
 
