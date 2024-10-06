@@ -6,28 +6,37 @@ import { FormEvent, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { AlertTriangle, MessageSquare, ThumbsUp, Upload, X } from 'lucide-react'
 import { ChatUI } from '&/components/chat'
-import { ScamAnalysisResult } from '&/type'
+import { ScamAnalysisResult } from '&/types'
 import { analyseText } from '&/action'
 import { Spinner } from '&/components/ui/spinner'
+import { CoreMessage } from 'ai'
+import { toast } from '&/hooks/use-toast'
+import ScamAnalysisView from '&/components/scam-analysis'
 
 export default function Page() {
   const [suspiciousText, setSuspiciousText] = useState('')
   const [analysisResult, setAnalysisResult] =
     useState<ScamAnalysisResult | null>(null)
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
   const handleFileUpload = (evt: React.ChangeEvent<HTMLInputElement>) => {
+    setIsLoading(false)
     const file = evt.target.files?.[0]
     if (file && file.type.startsWith('image/')) {
-      setUploadedFile(file)
-      const objectUrl = URL.createObjectURL(file)
-      setPreviewUrl(objectUrl)
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result as string)
+      }
+      reader.readAsDataURL(file)
     } else {
-      alert('Please upload a valid image file.')
+      toast({
+        title: `Invalid File Type`,
+        description: `Please upload a valid image file.`,
+        variant: `destructive`,
+      })
     }
   }
 
@@ -39,7 +48,6 @@ export default function Page() {
     event.preventDefault()
     const file = event.dataTransfer.files[0]
     if (file && file.type.startsWith('image/')) {
-      setUploadedFile(file)
       const objectUrl = URL.createObjectURL(file)
       setPreviewUrl(objectUrl)
     } else {
@@ -48,7 +56,6 @@ export default function Page() {
   }
 
   const removeUploadedFile = () => {
-    setUploadedFile(null)
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl)
       setPreviewUrl(null)
@@ -69,16 +76,33 @@ export default function Page() {
   async function handleSubmit(evt: FormEvent) {
     evt.preventDefault()
     setIsLoading(true)
-    const analysisResult = await analyseText(suspiciousText)
-    console.log(analysisResult)
-    setAnalysisResult(analysisResult)
-    setIsLoading(false)
+    const userMessage: CoreMessage = {
+      role: `user`,
+      content: previewUrl
+        ? [
+            { type: `text`, text: suspiciousText },
+            { type: `image`, image: previewUrl },
+          ]
+        : suspiciousText,
+    }
+    try {
+      const analysisResult = await analyseText([userMessage])
+      setAnalysisResult(analysisResult)
+    } catch {
+      toast({
+        title: `Error`,
+        description: `Server error, please try again later.`,
+        variant: `destructive`,
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
     <div className='p-4'>
       <section>
-        <h2 className='text-3xl font-bold mb-6'>Analyze Suspicious Content</h2>
+        <h2 className='text-3xl font-bold mb-6'>Analyse Suspicious Content</h2>
         <div className='mb-4'>
           <Button
             variant={isChatOpen ? 'outline' : 'default'}
@@ -102,7 +126,10 @@ export default function Page() {
               placeholder='Paste suspicious text here...'
               rows={6}
               value={suspiciousText}
-              onChange={evt => setSuspiciousText(evt.target.value)}
+              onChange={evt => {
+                setIsLoading(false)
+                setSuspiciousText(evt.target.value)
+              }}
             />
             {!analysisResult && (
               <>
@@ -119,33 +146,26 @@ export default function Page() {
                     accept='image/*'
                     style={{ display: 'none' }}
                   />
-                  {uploadedFile ? (
-                    <div className='space-y-4'>
-                      <div className='flex items-center justify-center'>
-                        <span className='mr-2'>{uploadedFile.name}</span>
-                        <Button
-                          variant='ghost'
-                          size='sm'
-                          onClick={e => {
-                            e.stopPropagation()
-                            removeUploadedFile()
-                          }}
-                        >
-                          <X className='h-4 w-4' />
-                        </Button>
-                      </div>
-                      {previewUrl && (
-                        <div className='mt-4'>
-                          <p className='mb-2 font-bold'>Image Preview:</p>
-                          <Image
-                            src={previewUrl}
-                            alt='Preview of uploaded image'
-                            width={80}
-                            height={80}
-                            className='max-w-full mx-auto rounded-lg shadow-md'
-                          />
-                        </div>
-                      )}
+                  {previewUrl ? (
+                    <div>
+                      <Button
+                        variant='ghost'
+                        onClick={evt => {
+                          evt.stopPropagation()
+                          removeUploadedFile()
+                        }}
+                        className='rounded-xl'
+                      >
+                        <X className='w-4 h-4' />
+                      </Button>
+                      <p className='mb-2 font-bold'>Image Preview:</p>
+                      <Image
+                        src={previewUrl}
+                        alt='Preview of uploaded image'
+                        width={80}
+                        height={80}
+                        className='max-w-full mx-auto rounded-lg shadow-md w-28 h-28 object-cover'
+                      />
                     </div>
                   ) : (
                     <div>
@@ -165,7 +185,7 @@ export default function Page() {
                   ) : (
                     <Button
                       size='lg'
-                      disabled={!suspiciousText && !uploadedFile}
+                      disabled={!suspiciousText && !previewUrl}
                       type='submit'
                     >
                       Analyze
@@ -176,11 +196,12 @@ export default function Page() {
             )}
           </form>
         ) : (
-          <ChatUI />
+          <ChatUI analysisResult={analysisResult as ScamAnalysisResult} />
         )}
       </section>
-      <div className='border rounded-lg p-4 mt-4'>
-        {analysisResult && (
+      <ScamAnalysisView />
+      {analysisResult && (
+        <div className='border rounded-lg p-4 mt-4'>
           <div>
             <h2 className='text-3xl font-bold mb-6'>Analysis Results</h2>
             <div
@@ -223,7 +244,6 @@ export default function Page() {
             <Button
               onClick={() => {
                 setSuspiciousText('')
-                setUploadedFile(null)
                 setPreviewUrl(null)
                 setAnalysisResult(null)
               }}
@@ -231,8 +251,8 @@ export default function Page() {
               Analyze Another
             </Button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }
