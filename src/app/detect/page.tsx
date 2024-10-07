@@ -80,7 +80,7 @@ export default function Page() {
       role: `user`,
       content: previewUrl
         ? [
-            { type: `text`, text: suspiciousText },
+            { type: `text`, text: suspiciousText || `Analyse the image` },
             { type: `image`, image: previewUrl },
           ]
         : suspiciousText,

@@ -67,7 +67,7 @@ export function ChatUI({
         role: `user`,
         content: previewUrl
           ? [
-              { type: `text`, text: inputText },
+              { type: `text`, text: inputText || `Analyse the image` },
               { type: `image`, image: previewUrl },
             ]
           : inputText,
