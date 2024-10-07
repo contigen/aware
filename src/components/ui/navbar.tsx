@@ -12,7 +12,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from './sheet'
-import { useState } from 'react'
+import { Dispatch, SetStateAction, useState } from 'react'
 
 const ROUTES = [
   {
@@ -33,7 +33,13 @@ const ROUTES = [
   },
 ]
 
-function NavLinks({ className }: { className?: string }) {
+function NavLinks({
+  className,
+  setIsMenuOpen,
+}: {
+  className?: string
+  setIsMenuOpen?: Dispatch<SetStateAction<boolean>>
+}) {
   const pathname = usePathname()
   return (
     <ul className={cn(`flex space-x-4`, className)}>
@@ -43,6 +49,7 @@ function NavLinks({ className }: { className?: string }) {
             variant='ghost'
             asChild
             className={cn(pathname == route.href && 'bg-white text-blue-600')}
+            onClick={() => setIsMenuOpen?.(false)}
           >
             <Link href={route.href}>{route.name}</Link>
           </Button>
@@ -91,7 +98,7 @@ export function Navbar() {
               <SheetHeader>
                 <SheetTitle>Menu</SheetTitle>
               </SheetHeader>
-              <NavLinks className='flex-col gap-2 mt-4 items-center' />
+              <NavLinks className='flex-col gap-2 mt-4 items-center' {...{setIsMenuOpen}}/>
             </SheetContent>
           </Sheet>
         </div>
