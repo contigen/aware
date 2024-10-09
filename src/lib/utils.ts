@@ -17,7 +17,7 @@ export function generateReadableSummary(result: ScamAnalysisResult) {
   if (result.potentialThreats.length > 0) {
     summary += `We've identified the following potential threats: `
     result.potentialThreats.forEach((threat, index) => {
-      summary += `${index > 0 ? ', ' : ``}${threat.type} (${
+      summary += `${index > 0 ? `, ` : ``}${threat.type} (${
         threat.severity
       } severity)`
     })
@@ -25,7 +25,7 @@ export function generateReadableSummary(result: ScamAnalysisResult) {
   }
 
   if (result.suspiciousElements.length > 0) {
-    summary += "We've found some suspicious elements: "
+    summary += `We've found some suspicious elements: `
     result.suspiciousElements.forEach((element, index) => {
       summary += `${index > 0 ? ', ' : ''}a ${element.type.toLowerCase()} (${
         element.value
@@ -36,15 +36,15 @@ export function generateReadableSummary(result: ScamAnalysisResult) {
 
   if (result.safetyTips.length > 0) {
     summary += `Here are some safety tips: `
-    summary += result.safetyTips.join('. ') + `.`
+    summary += result.safetyTips.join(`. `) + `.`
   }
 
   if (result.recommendedActions.length > 0) {
     summary += `We recommend the following actions: `
-    summary += result.recommendedActions.join('. ') + `.`
+    summary += result.recommendedActions.join(`. `) + `.`
   }
 
-  summary += `To summarize: ${result.summary}`
+  summary += `To summarise: ${result.summary}`
 
   return summary
 }
