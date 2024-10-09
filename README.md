@@ -1,24 +1,21 @@
+# <img src='./src/app/shield-logo.png' alt='logo for aware'/> Aware
+
+A scam detection web app that helps senior citizens identify potential scams in texts and images using AI.
+
 ## Inspiration
 
 This project was inspired by the increasing number of scams targeting seniors. The goal was to create a simple, easy-to-use tool that could help older adults quickly identify potential online threats, like phishing emails and fake links, without feeling overwhelmed. The idea was to provide peace of mind and make the internet a safer place for them.
 
-## What it does
-
-The web app analyses texts, emails and whatnots using AI to prevent potential scam opportunities.
-
 ## How I built it
 
-The project was built using the Next.js app router, utilising Gemini AI to analyse the text via Vercel AI SDK, Radix UI for the base UI components with Tailwind CSS for styling. The AI analyzes emails or messages to identify potential scams, by checking for phishing patterns, dangerous links, and suspicious requests for personal information.
+The project was built using the Next.js app router, utilising Gemini AI to analyse the text via Vercel AI SDK, Radix UI for the base UI components provided by [shadcn/ui](https://ui.shadcn.com), with Tailwind CSS for styling. The AI analyses emails or messages to identify potential scams, by checking for phishing patterns, dangerous links, and suspicious requests for personal information.
 
-## Challenges I ran into
+## Features
 
-One of the biggest challenges was getting structured data from the AI that could easily be displayed on the frontend. Making sure the information was understandable and actionable for users without overcomplicating things took some extra effort. But ultimately, it was worth it to ensure a smooth user experience.
-
-## Accomplishments that I'm proud of
-
-I'm grateful for being able to bring the app to fruition, generally speaking; from ideation to building & deploying, anything could go(have gone) wrong.
-
-Particularly, the whole app UI looks good
+- Text & image analysis capabilities for both quick and in-depth analysis interfaces using Gemini AI via the Vercel AI SDK.
+- Speech-to-text in the indepth-analysis chat UI to improve UX & accessibility
+- Text-to-speech to read analysis results
+- Print analysis result using the `react-to-print` library.
 
 ## What I learned
 
@@ -39,7 +36,7 @@ One of the main lessons was understanding how to build something accessible to a
 - Vercel AI SDK
 - TailwindCSS
 - Radix UI
-- Zod to provide schema for AI structured output
+- Zod schema for AI structured output
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
