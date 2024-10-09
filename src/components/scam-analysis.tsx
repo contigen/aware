@@ -28,42 +28,12 @@ import {
 import { useSpeechSynthesis } from '&/features/use-speech-synthesis'
 import { generateReadableSummary } from '&/lib/utils'
 import { toast } from '&/hooks/use-toast'
-
-type ThreatLevel = 'Low' | 'Medium' | 'High'
-type ThreatType =
-  | 'Phishing'
-  | 'Malware'
-  | 'Financial Scam'
-  | 'Identity Theft'
-  | 'Fake Offer'
-type SuspiciousElementType =
-  | 'URL'
-  | 'Email Address'
-  | 'Phone Number'
-  | 'Text Content'
-
-interface PotentialThreat {
-  type: ThreatType
-  description: string
-  severity: ThreatLevel
-}
-
-interface SuspiciousElement {
-  type: SuspiciousElementType
-  value: string
-  reason: string
-}
-
-interface ScamAnalysisResult {
-  isScam: boolean
-  overallThreatLevel: ThreatLevel
-  confidence: number
-  potentialThreats: PotentialThreat[]
-  suspiciousElements: SuspiciousElement[]
-  safetyTips: string[]
-  recommendedActions: string[]
-  summary: string
-}
+import {
+  SuspiciousElementType,
+  ThreatType,
+  ThreatLevel,
+  ScamAnalysisResult,
+} from '&/types'
 
 const threatIcons: Record<ThreatType, React.ReactNode> = {
   Phishing: <AlertCircle className='h-5 w-5' />,
@@ -81,9 +51,9 @@ const suspiciousElementIcons: Record<SuspiciousElementType, React.ReactNode> = {
 }
 
 const threatLevelColors: Record<ThreatLevel, string> = {
-  Low: 'bg-success text-success-foreground',
-  Medium: 'bg-warning text-warning-foreground',
-  High: 'bg-destructive text-destructive-foreground',
+  Low: `bg-success text-success-foreground`,
+  Medium: `bg-warning text-warning-foreground`,
+  High: `bg-destructive text-destructive-foreground`,
 }
 
 function ScamAnalysis({ result }: { result: ScamAnalysisResult }) {
@@ -110,14 +80,12 @@ function ScamAnalysis({ result }: { result: ScamAnalysisResult }) {
       })
       return
     }
-    setIsReading(prev => !prev)
     if (isReading) {
       pause()
-    } else if (!isReading && hasCompletedReading) {
-      speak()
     } else {
-      resume()
+      speak()
     }
+    setIsReading(prev => !prev)
   }
 
   return (
@@ -232,11 +200,7 @@ function ScamAnalysis({ result }: { result: ScamAnalysisResult }) {
           className='w-full sm:w-1/2 bg-primary text-primary-foreground hover:bg-primary/90'
         >
           <Volume2 className='mr-2 h-4 w-4' />
-          {isReading
-            ? `Reading...`
-            : hasCompletedReading
-            ? `Read Analysis Aloud`
-            : `Resume Reading`}
+          {isReading ? `Reading...` : `Read Analysis Aloud`}
         </Button>
       </CardFooter>
     </Card>

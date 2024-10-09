@@ -1,24 +1,36 @@
 import { z } from 'zod'
 
+export type ThreatLevel = 'Low' | 'Medium' | 'High'
+export type ThreatType =
+  | 'Phishing'
+  | 'Malware'
+  | 'Financial Scam'
+  | 'Identity Theft'
+  | 'Fake Offer'
+export type SuspiciousElementType =
+  | 'URL'
+  | 'Email Address'
+  | 'Phone Number'
+  | 'Text Content'
+
+export type PotentialThreat = {
+  type: ThreatType
+  description: string
+  severity: ThreatLevel
+}
+
+export type SuspiciousElement = {
+  type: SuspiciousElementType
+  value: string
+  reason: string
+}
+
 export type ScamAnalysisResult = {
   isScam: boolean
-  overallThreatLevel: 'Low' | 'Medium' | 'High'
+  overallThreatLevel: ThreatLevel
   confidence: number
-  potentialThreats: {
-    type:
-      | 'Phishing'
-      | 'Malware'
-      | 'Financial Scam'
-      | 'Identity Theft'
-      | 'Fake Offer'
-    description: string
-    severity: 'Low' | 'Medium' | 'High'
-  }[]
-  suspiciousElements: {
-    type: 'URL' | 'Email Address' | 'Phone Number' | 'Text Content'
-    value: string
-    reason: string
-  }[]
+  potentialThreats: PotentialThreat[]
+  suspiciousElements: SuspiciousElement[]
   safetyTips: string[]
   recommendedActions: string[]
   summary: string
