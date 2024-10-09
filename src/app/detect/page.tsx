@@ -116,7 +116,7 @@ export default function Page() {
             onClick={() => setIsChatOpen(true)}
           >
             <MessageSquare className='w-4 h-4 mr-2' />
-            In-depth Conversation
+            In-depth Analysis
           </Button>
         </div>
         {!isChatOpen ? (
@@ -173,9 +173,7 @@ export default function Page() {
                       <p className='mt-2 text-sm text-gray-600'>
                         Click to upload or drag and drop
                       </p>
-                      <p className='text-xs text-gray-500'>
-                        PNG, JPG, GIF up to 10MB
-                      </p>
+                      <p className='text-xs text-gray-500'>PNG, JPG, GIF</p>
                     </div>
                   )}
                 </div>
