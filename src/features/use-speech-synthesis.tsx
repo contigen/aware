@@ -1,67 +1,133 @@
-import { stateField } from '&/types'
-import { useState } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 
-let speechSynth: SpeechSynthesis | undefined
-let utterance: SpeechSynthesisUtterance | undefined
-if (typeof window !== `undefined`) {
-  try {
-    speechSynth = speechSynthesis
-    utterance = new SpeechSynthesisUtterance()
-  } catch {
-    speechSynth = undefined
-  }
+type SpeechSynthOptions = {
+  paused: boolean
+  speaking: boolean
 }
 
-export function useSpeechSynthesis(_utterance: string, onEnd?: () => void) {
-  const [speechSynthOptions, setSpeechSynthOptions] = useState({
-    paused: speechSynth?.paused,
-    speaking: speechSynth?.speaking,
-  })
+export function useSpeechSynthesis(text: string) {
+  const [speechSynth, setSpeechSynth] = useState<SpeechSynthesis | null>(null)
+  const [utterance, setUtterance] = useState<SpeechSynthesisUtterance | null>(
+    null
+  )
+  const [speechSynthOptions, setSpeechSynthOptions] =
+    useState<SpeechSynthOptions>({
+      paused: false,
+      speaking: false,
+    })
   const [errMessage, setErrMessage] = useState(``)
-  type synthOptionsType = typeof speechSynthOptions
-  const updateStateConfig = (stateValue: stateField<synthOptionsType>) => {
-    setSpeechSynthOptions(prev => ({ ...prev, ...stateValue }))
-  }
+  const intervalRef = useRef<number | null>(null)
 
-  function modifyUtteranceRate() {
-    if (utterance) {
+  useEffect(() => {
+    try {
+      const synth = window.speechSynthesis
+      if (!synth) {
+        throw new Error('speechSynthesis not available')
+      }
+      const utter = new SpeechSynthesisUtterance(text)
+      setSpeechSynth(synth)
+      setUtterance(utter)
+    } catch (err) {
+      console.error('Speech synthesis initialization error:', err)
+      setErrMessage(`Speech synthesis initialization error: ${err}`)
+    }
+  }, [text])
+
+  const clearIntervalIfAny = useCallback(() => {
+    if (intervalRef.current !== null) {
+      clearInterval(intervalRef.current)
+      intervalRef.current = null
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!utterance) return
+
+    const onStart = () => {
+      setSpeechSynthOptions({ speaking: true, paused: false })
+
+      // Chrome time outs around 15s, a workaround
+      if (intervalRef.current === null) {
+        intervalRef.current = window.setInterval(() => {
+          if (speechSynth && !speechSynth.speaking) {
+            clearIntervalIfAny()
+          } else {
+            speechSynth?.pause()
+            speechSynth?.resume()
+          }
+        }, 14000)
+      }
+    }
+    const onPause = () => {
+      setSpeechSynthOptions({ speaking: true, paused: true })
+    }
+    const onResume = () => {
+      setSpeechSynthOptions({ speaking: true, paused: false })
+    }
+    const onEnd = () => {
+      setSpeechSynthOptions({ speaking: false, paused: false })
+      clearIntervalIfAny()
+      // onEnd?.()
+    }
+    const onError = (evt: SpeechSynthesisErrorEvent) => {
+      setSpeechSynthOptions({ speaking: false, paused: false })
+      setErrMessage(`Speech synthesis error: ${evt.error}`)
+      clearIntervalIfAny()
+    }
+
+    utterance.onstart = onStart
+    utterance.onpause = onPause
+    utterance.onresume = onResume
+    utterance.onend = onEnd
+    utterance.onerror = onError
+
+    return () => {
+      utterance.onstart = null
+      utterance.onpause = null
+      utterance.onresume = null
+      utterance.onend = null
+      utterance.onerror = null
+      clearIntervalIfAny()
+    }
+  }, [utterance, speechSynth, clearIntervalIfAny])
+
+  const speak = useCallback(() => {
+    if (speechSynth && utterance) {
       utterance.rate = 0.9
-      utterance.text = _utterance
+      utterance.text = text
+      speechSynth.cancel() // Cancel any ongoing speech
+      speechSynth.speak(utterance)
     }
-  }
-  function speak() {
-    modifyUtteranceRate()
-    if (utterance) speechSynth?.speak(utterance)
+  }, [speechSynth, utterance, text])
 
-    updateStateConfig({ speaking: true })
-  }
-  function pause() {
-    speechSynth?.pause()
-    updateStateConfig({ paused: true })
-  }
-  function resume() {
-    speechSynth?.resume()
-    updateStateConfig({ paused: false })
-  }
-  if (utterance) {
-    utterance.onstart = () => {
-      updateStateConfig({ speaking: true })
+  const pause = useCallback(() => {
+    if (speechSynth) {
+      speechSynth.pause()
+      clearIntervalIfAny()
     }
-    utterance.onpause = evt => {
-      console.log(speechSynth?.paused)
-      console.log(speechSynth?.speaking)
-      console.log(evt)
-      updateStateConfig({ paused: true })
+  }, [speechSynth, clearIntervalIfAny])
+
+  const resume = useCallback(() => {
+    if (speechSynth) {
+      speechSynth.resume()
     }
-    utterance.onend = () => {
-      onEnd?.()
-      console.log('utterance.onend')
-      updateStateConfig({ speaking: false })
+  }, [speechSynth])
+
+  const cancel = useCallback(() => {
+    if (speechSynth) {
+      speechSynth.cancel()
+      clearIntervalIfAny()
+      setSpeechSynthOptions({ speaking: false, paused: false })
     }
-    utterance.onerror = evt => {
-      updateStateConfig({ speaking: false })
-      setErrMessage(evt.error)
-    }
+  }, [speechSynth, clearIntervalIfAny])
+
+  return {
+    speechSynth,
+    speak,
+    pause,
+    resume,
+    cancel,
+    speechSynthOptions,
+    errMessage,
   }
-  return { speechSynth, speak, pause, resume, speechSynthOptions, errMessage }
 }

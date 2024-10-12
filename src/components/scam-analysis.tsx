@@ -63,16 +63,14 @@ function ScamAnalysis({ result }: { result: ScamAnalysisResult }) {
   })
 
   const [isReading, setIsReading] = useState(false)
-  const [hasCompletedReading, setHasCompletedReading] = useState(false)
 
   const readableSummary = generateReadableSummary(result)
-  const { speak, speechSynth, resume, pause } = useSpeechSynthesis(
-    readableSummary,
-    () => setHasCompletedReading(true)
-  )
+  const { speak, pause, resume, speechSynthOptions, errMessage } =
+    useSpeechSynthesis(readableSummary)
 
   const readAnalysisAloud = () => {
-    if (!speechSynth) {
+    console.log(`Current state:`, speechSynthOptions)
+    if (errMessage) {
       toast({
         title: `Text-to-Speech not supported`,
         description: `Your browser does not support text-to-speech functionality.`,
@@ -80,12 +78,17 @@ function ScamAnalysis({ result }: { result: ScamAnalysisResult }) {
       })
       return
     }
+
     if (isReading) {
-      pause()
+      if (speechSynthOptions.paused) {
+        resume()
+      } else {
+        pause()
+      }
     } else {
       speak()
     }
-    setIsReading(prev => !prev)
+    setIsReading(!isReading)
   }
 
   return (
