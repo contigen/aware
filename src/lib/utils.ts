@@ -12,7 +12,7 @@ export function generateReadableSummary(result: ScamAnalysisResult) {
   }. `
   summary += `The overall threat level is ${
     result.overallThreatLevel
-  }, with a confidence of ${(result.confidence * 100).toFixed(1)}%. `
+  }, with a confidence of ${result.confidence * 100}%. `
 
   if (result.potentialThreats.length > 0) {
     summary += `We've identified the following potential threats: `
