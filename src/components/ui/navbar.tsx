@@ -27,6 +27,7 @@ const ROUTES = [
     name: `Learn`,
     href: '/learn',
   },
+  { name: `Scam Exercise`, href: `/scam-exercise` },
   {
     name: `About`,
     href: `/about`,
@@ -98,7 +99,10 @@ export function Navbar() {
               <SheetHeader>
                 <SheetTitle>Menu</SheetTitle>
               </SheetHeader>
-              <NavLinks className='flex-col gap-2 mt-4 items-center' {...{setIsMenuOpen}}/>
+              <NavLinks
+                className='flex-col gap-2 mt-4 items-center'
+                {...{ setIsMenuOpen }}
+              />
             </SheetContent>
           </Sheet>
         </div>
