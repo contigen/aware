@@ -25,7 +25,6 @@ One of the main lessons was understanding how to build something accessible to a
 ## What's next for Aware
 
 - A platform to report confirmed scams
-- Adding speech synthesis to read AI analysis, for accessibility and improved UX
 - Enabling Generative UI in the AI chat interface for a more interactive experience
 - Validating any suspicious URL extracted in a suspicious text against an external service
 
