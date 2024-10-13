@@ -98,7 +98,7 @@ export function QuickAnalysis({
     } catch {
       toast({
         title: `Clipboard access denied`,
-        description: `Please aclsxllow clipboard access and try again.`,
+        description: `Please allow clipboard access and try again.`,
         variant: `destructive`,
       })
     }
