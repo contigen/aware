@@ -37,19 +37,32 @@ const ROUTES = [
 function NavLinks({
   className,
   setIsMenuOpen,
+  isMobile = false,
 }: {
   className?: string
   setIsMenuOpen?: Dispatch<SetStateAction<boolean>>
+  isMobile?: boolean
 }) {
   const pathname = usePathname()
   return (
-    <ul className={cn(`flex space-x-4`, className)}>
+    <ul
+      className={cn(
+        `flex`,
+        isMobile ? `flex-col items-start space-y-4` : `space-x-4`,
+        className
+      )}
+    >
       {ROUTES.map(route => (
-        <li key={route.name}>
+        <li key={route.name} className={isMobile ? `w-full` : ``}>
           <Button
             variant='ghost'
             asChild
-            className={cn(pathname == route.href && 'bg-white text-blue-600')}
+            className={cn(
+              pathname == route.href && `bg-white text-blue-600`,
+              ``,
+              isMobile &&
+                `w-full justify-start text-2xl font-semibold tracking-tight`
+            )}
             onClick={() => setIsMenuOpen?.(false)}
           >
             <Link href={route.href}>{route.name}</Link>
@@ -97,11 +110,12 @@ export function Navbar() {
             </SheetTrigger>
             <SheetContent side='right' className='w-2/3'>
               <SheetHeader>
-                <SheetTitle>Menu</SheetTitle>
+                <SheetTitle>Awareʼs Menu</SheetTitle>
               </SheetHeader>
               <NavLinks
-                className='flex-col gap-2 mt-4 items-center'
-                {...{ setIsMenuOpen }}
+                className='mt-4'
+                setIsMenuOpen={setIsMenuOpen}
+                isMobile={true}
               />
             </SheetContent>
           </Sheet>
