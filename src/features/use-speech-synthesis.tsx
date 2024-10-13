@@ -51,6 +51,7 @@ export function useSpeechSynthesis(text: string) {
         intervalRef.current = window.setInterval(() => {
           if (speechSynth && !speechSynth.speaking) {
             clearIntervalIfAny()
+            setSpeechSynthOptions({ speaking: false, paused: false })
           } else {
             speechSynth?.pause()
             speechSynth?.resume()
@@ -67,7 +68,6 @@ export function useSpeechSynthesis(text: string) {
     const onEnd = () => {
       setSpeechSynthOptions({ speaking: false, paused: false })
       clearIntervalIfAny()
-      // onEnd?.()
     }
     const onError = (evt: SpeechSynthesisErrorEvent) => {
       setSpeechSynthOptions({ speaking: false, paused: false })
