@@ -57,16 +57,19 @@ const threatLevelColors: Record<ThreatLevel, string> = {
 }
 
 function ScamAnalysis({ result }: { result: ScamAnalysisResult }) {
+  const confidence = result.confidence * 100
   const contentRef = useRef<HTMLDivElement>(null)
   const printFn = useReactToPrint({
     contentRef,
   })
 
   const [isReading, setIsReading] = useState(false)
+  const [hasCompletedReading, setHasCompletedReading] = useState(false)
 
   const readableSummary = generateReadableSummary(result)
   const { speak, pause, resume, speechSynthOptions, errMessage } =
-    useSpeechSynthesis(readableSummary)
+    useSpeechSynthesis(readableSummary, () => setHasCompletedReading(true))
+  useSpeechSynthesis(readableSummary)
 
   const readAnalysisAloud = () => {
     console.log(`Current state:`, speechSynthOptions)
@@ -116,9 +119,9 @@ function ScamAnalysis({ result }: { result: ScamAnalysisResult }) {
         <CardContent className='space-y-6'>
           <div>
             <h3 className='text-lg font-semibold mb-2'>Confidence</h3>
-            <Progress value={result.confidence} className='w-full' />
+            <Progress value={confidence} className='w-full' />
             <p className='text-sm text-muted-foreground mt-1'>
-              {result.confidence}% confident in this assessment
+              {confidence}% confident in this assessment
             </p>
           </div>
 
@@ -199,82 +202,30 @@ function ScamAnalysis({ result }: { result: ScamAnalysisResult }) {
         </Button>
         <Button
           onClick={readAnalysisAloud}
-          // disabled={isReading || hasCompletedReading}
+          disabled={hasCompletedReading}
           className='w-full sm:w-1/2 bg-primary text-primary-foreground hover:bg-primary/90'
         >
           <Volume2 className='mr-2 h-4 w-4' />
-          {isReading ? `Reading...` : `Read Analysis Aloud`}
+          {isReading
+            ? speechSynthOptions.paused
+              ? 'Paused'
+              : 'Reading...'
+            : hasCompletedReading
+            ? 'Finished Reading'
+            : 'Read Analysis Aloud'}
         </Button>
       </CardFooter>
     </Card>
   )
 }
 
-export default function ScamAnalysisView() {
-  const sampleResult: ScamAnalysisResult = {
-    isScam: true,
-    overallThreatLevel: 'High',
-    confidence: 92,
-    potentialThreats: [
-      {
-        type: 'Phishing',
-        description:
-          'This message attempts to trick you into revealing sensitive information.',
-        severity: 'High',
-      },
-      {
-        type: 'Financial Scam',
-        description:
-          'The sender is trying to manipulate you into sending money.',
-        severity: 'High',
-      },
-      {
-        type: 'Identity Theft',
-        description:
-          'The scammer may be attempting to steal your personal information.',
-        severity: 'Medium',
-      },
-    ],
-    suspiciousElements: [
-      {
-        type: 'URL',
-        value: 'http://fakebank-secure.com',
-        reason:
-          'This URL mimics a legitimate bank website but is not authentic.',
-      },
-      {
-        type: 'Email Address',
-        value: 'support@fakebank-secure.com',
-        reason: 'This email address is not associated with the real bank.',
-      },
-      {
-        type: 'Text Content',
-        value: "Urgent: Your account will be closed if you don't act now!",
-        reason: 'Creates a false sense of urgency to manipulate you.',
-      },
-    ],
-    safetyTips: [
-      'Never click on suspicious links in emails or messages.',
-      "Always verify the sender's identity before sharing any information.",
-      'Be wary of messages that create a sense of urgency or fear.',
-      'Contact your bank directly using their official website or phone number if you have concerns.',
-    ],
-    recommendedActions: [
-      'Do not respond to this message or click any links.',
-      'Report this email as phishing to your email provider.',
-      "If you've already clicked any links, change your passwords immediately.",
-      'Monitor your bank accounts and credit report for any suspicious activity.',
-    ],
-    summary:
-      'This message shows multiple signs of being a sophisticated phishing attempt. It tries to create urgency and fear to manipulate you into revealing sensitive financial information or sending money. The sender is impersonating a bank, but the email address and website URL are fake. Please exercise extreme caution and do not engage with this message in any way.',
-  }
-
+export function ScamAnalysisView({ result }: { result: ScamAnalysisResult }) {
   return (
-    <section>
-      <h1 className='text-4xl font-bold text-center mb-8'>
+    <section className='my-8'>
+      <h2 className='text-3xl font-bold text-center mb-4'>
         Scam Analysis Result
-      </h1>
-      <ScamAnalysis result={sampleResult} />
+      </h2>
+      <ScamAnalysis result={result} />
     </section>
   )
 }
