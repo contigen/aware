@@ -58,27 +58,26 @@ const scenarios = [
 export function ScamAwarenessExercise() {
   const [currentScenario, setCurrentScenario] = useState<Scenario | null>(null)
   const [score, setScore] = useState(0)
-  const [totalQuestions, setTotalQuestions] = useState(0)
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [showExplanation, setShowExplanation] = useState(false)
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null)
   const [exerciseOver, setExerciseOver] = useState(false)
 
   const nextScenario = useCallback(() => {
-    const nextQuestionIndex = totalQuestions + 1
+    const nextQuestionIndex = currentQuestionIndex + 1
     if (nextQuestionIndex >= scenarios.length) {
       setExerciseOver(true)
       return
     }
-    const _nextScenario = scenarios[nextQuestionIndex]
-    setCurrentScenario(_nextScenario)
+    setCurrentQuestionIndex(nextQuestionIndex)
+    setCurrentScenario(scenarios[nextQuestionIndex])
     setShowExplanation(false)
     setIsCorrect(null)
-    setTotalQuestions(nextQuestionIndex)
-  }, [totalQuestions])
+  }, [currentQuestionIndex])
 
   const startNewExercise = useCallback(() => {
     setScore(0)
-    setTotalQuestions(0)
+    setCurrentQuestionIndex(0)
     setExerciseOver(false)
     setCurrentScenario(scenarios[0])
     setShowExplanation(false)
@@ -90,7 +89,6 @@ export function ScamAwarenessExercise() {
     const correct = answer === currentScenario.isScam
     setIsCorrect(correct)
     setScore(prevScore => (correct ? prevScore + 1 : prevScore))
-    setTotalQuestions(prevTotal => prevTotal + 1)
     setShowExplanation(true)
   }
 
@@ -115,7 +113,7 @@ export function ScamAwarenessExercise() {
           <>
             <Progress value={progressPercentage} className='mb-4' />
             <p className='text-lg mb-4'>
-              Scenario {totalQuestions + 1} of {scenarios.length}
+              Scenario {currentQuestionIndex + 1} of {scenarios.length}
             </p>
             <p className='text-xl mb-6'>{currentScenario?.description}</p>
             <div className='flex justify-center space-x-4 mb-6'>
@@ -186,7 +184,7 @@ export function ScamAwarenessExercise() {
       </CardContent>
       <CardFooter className='justify-between'>
         <p>
-          Score: {score}/{totalQuestions}
+          Score: {score}/{currentQuestionIndex + 1}
         </p>
         {!exerciseOver && showExplanation && (
           <Button onClick={nextScenario}>Next Scenario</Button>
