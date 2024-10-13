@@ -64,11 +64,10 @@ function ScamAnalysis({ result }: { result: ScamAnalysisResult }) {
   })
 
   const [isReading, setIsReading] = useState(false)
-  const [hasCompletedReading, setHasCompletedReading] = useState(false)
 
   const readableSummary = generateReadableSummary(result)
   const { speak, pause, resume, speechSynthOptions, errMessage } =
-    useSpeechSynthesis(readableSummary, () => setHasCompletedReading(true))
+    useSpeechSynthesis(readableSummary)
   useSpeechSynthesis(readableSummary)
 
   const readAnalysisAloud = () => {
@@ -202,17 +201,14 @@ function ScamAnalysis({ result }: { result: ScamAnalysisResult }) {
         </Button>
         <Button
           onClick={readAnalysisAloud}
-          disabled={hasCompletedReading}
           className='w-full sm:w-1/2 bg-primary text-primary-foreground hover:bg-primary/90'
         >
           <Volume2 className='mr-2 h-4 w-4' />
           {isReading
             ? speechSynthOptions.paused
-              ? 'Paused'
-              : 'Reading...'
-            : hasCompletedReading
-            ? 'Finished Reading'
-            : 'Read Analysis Aloud'}
+              ? `Resume`
+              : `Pause`
+            : `Read Aloud`}
         </Button>
       </CardFooter>
     </Card>
@@ -222,9 +218,7 @@ function ScamAnalysis({ result }: { result: ScamAnalysisResult }) {
 export function ScamAnalysisView({ result }: { result: ScamAnalysisResult }) {
   return (
     <section className='my-8'>
-      <h2 className='text-3xl font-bold text-center mb-4'>
-        Scam Analysis Result
-      </h2>
+      <h2 className='text-3xl text-center mb-4'>Scam Analysis Result</h2>
       <ScamAnalysis result={result} />
     </section>
   )
