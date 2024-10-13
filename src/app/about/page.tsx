@@ -1,3 +1,8 @@
+export const metadata = {
+  title: `About Aware | AI-Powered Scam Protection`,
+  description: 'Learn about Awareʼ mission',
+}
+
 export default function Page() {
   return (
     <div className='p-4'>
