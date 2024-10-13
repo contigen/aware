@@ -112,10 +112,12 @@ export function ScamAwarenessExercise() {
         {!exerciseOver ? (
           <>
             <Progress value={progressPercentage} className='mb-4' />
-            <p className='text-lg mb-4'>
+            <p className='md:text-lg mb-4'>
               Scenario {currentQuestionIndex + 1} of {scenarios.length}
             </p>
-            <p className='text-xl mb-6'>{currentScenario?.description}</p>
+            <p className='text-lg md:text-xl mb-6'>
+              {currentScenario?.description}
+            </p>
             <div className='flex justify-center space-x-4 mb-6'>
               <Button
                 onClick={() => handleAnswer(true)}
