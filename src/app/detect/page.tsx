@@ -2,7 +2,7 @@
 
 import { Button } from '&/components/ui/button'
 import { MessageSquare } from 'lucide-react'
-import { ChatUI } from '&/components/chat'
+import { ChatUI } from './chat'
 import { ScamAnalysisResult } from '&/types'
 import { useState } from 'react'
 import { QuickAnalysis } from './quick-analysis'

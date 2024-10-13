@@ -1,5 +1,3 @@
-'use client'
-
 import { useState, useRef, useEffect, ChangeEvent, FormEvent } from 'react'
 import { Button } from '&/components/ui/button'
 import { Input } from '&/components/ui/input'
@@ -14,6 +12,11 @@ import { readStreamableValue } from 'ai/rsc'
 import { ScamAnalysisResult } from '&/types'
 import { useSpeechRecognition } from '&/features/speech-recognition/use-speech-recognition'
 import { cn } from '&/lib/utils'
+
+export const metadata = {
+  title: `Detect Scams | Aware`,
+  description: `Upload text or images to our AI-powered scam detection tool. Get instant analysis and protect yourself from potential online threats.`,
+}
 
 type Message = CoreMessage & { dataURL?: string }
 
@@ -205,7 +208,7 @@ export function ChatUI({
                 type='file'
                 ref={fileInputRef}
                 onChange={handleFileUpload}
-                accept='image/*,video/*'
+                accept='image/*'
                 className='hidden'
               />
               <Button
