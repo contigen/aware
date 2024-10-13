@@ -13,6 +13,7 @@ import { analyseChat } from '&/action'
 import { readStreamableValue } from 'ai/rsc'
 import { ScamAnalysisResult } from '&/types'
 import { useSpeechRecognition } from '&/features/speech-recognition/use-speech-recognition'
+import { cn } from '&/lib/utils'
 
 type Message = CoreMessage & { dataURL?: string }
 
@@ -22,7 +23,7 @@ export function ChatUI({
   analysisResult: ScamAnalysisResult
 }) {
   const [messages, setMessages] = useState<Message[]>([])
-  const [inputText, setInputText] = useState('')
+  const [inputText, setInputText] = useState(``)
   const [isListening, setIsListening] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
@@ -52,15 +53,19 @@ export function ChatUI({
     }
   }
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: `smooth` })
+  function isAtBottom() {
+    if (!scrollAreaRef.current) return false
+    const { scrollTop, scrollHeight, clientHeight } = scrollAreaRef.current
+    return scrollHeight - scrollTop - clientHeight < 50
   }
 
   useEffect(() => {
-    scrollToBottom()
+    if (isAtBottom()) {
+      messagesEndRef.current?.scrollIntoView({ behavior: `smooth` })
+    }
   }, [messages])
 
-  const handleSubmit = async (evt: FormEvent) => {
+  async function handleSubmit(evt: FormEvent) {
     evt.preventDefault()
     if (inputText.trim() || previewUrl) {
       const newUserMessage: CoreMessage = {
@@ -76,15 +81,24 @@ export function ChatUI({
       setMessages(newMessages)
       setInputText(``)
       setPreviewUrl(null)
+      try {
+        const result = await analyseChat(newMessages, analysisResult)
 
-      const result = await analyseChat(newMessages, analysisResult)
-
-      for await (const content of readStreamableValue(result)) {
+        for await (const content of readStreamableValue(result)) {
+          setMessages([
+            ...newMessages,
+            {
+              role: `assistant`,
+              content: content as string,
+            },
+          ])
+        }
+      } catch {
         setMessages([
           ...newMessages,
           {
             role: `assistant`,
-            content: content as string,
+            content: `Server error, please try again later.`,
           },
         ])
       }
@@ -100,11 +114,6 @@ export function ChatUI({
       }
       reader.readAsDataURL(file)
     }
-  }
-
-  const removeMedia = () => {
-    setPreviewUrl(null)
-    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   useEffect(() => {
@@ -127,22 +136,23 @@ export function ChatUI({
             {messages.map((message, idx) => (
               <div
                 key={idx}
-                className={`flex ${
-                  message.role === 'user' ? 'justify-end' : 'justify-start'
-                } mb-4`}
+                className={cn(
+                  `flex mb-4`,
+                  message.role === `user` ? `justify-end` : `justify-start`
+                )}
               >
                 <div
-                  className={`max-w-[70%] break-words p-3 rounded-2xl ${
-                    message.role === 'user'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-[#E5E5EA] text-black'
-                  } ${
+                  className={cn(
+                    `max-w-[70%] break-words p-3 rounded-2xl`,
+                    message.role === `user`
+                      ? `bg-blue-500 text-white`
+                      : `bg-[#E5E5EA] text-black`,
                     idx > 0 && messages[idx - 1].role === message.role
-                      ? message.role === 'user'
-                        ? 'rounded-tr-md'
-                        : 'rounded-tl-md'
-                      : ''
-                  }`}
+                      ? message.role === `user`
+                        ? `rounded-tr-md`
+                        : `rounded-tl-md`
+                      : ``
+                  )}
                 >
                   <p className='text-sm'>{message.content.toString()}</p>
                 </div>
@@ -167,7 +177,7 @@ export function ChatUI({
                   size='icon'
                   variant='destructive'
                   className='absolute -top-2 -right-2 rounded-full w-6 h-6'
-                  onClick={removeMedia}
+                  onClick={() => setPreviewUrl(null)}
                 >
                   <X className='w-4 h-4' />
                 </Button>
@@ -202,9 +212,10 @@ export function ChatUI({
                 onClick={handleSpeechRec}
                 size='icon'
                 variant='ghost'
-                className={`rounded-full ${
-                  isListening ? `bg-red-500 text-white` : ``
-                }`}
+                className={cn(
+                  `rounded-full`,
+                  isListening && `bg-red-500 text-white`
+                )}
                 aria-label='Voice input'
                 type='button'
               >
