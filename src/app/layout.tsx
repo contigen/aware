@@ -6,8 +6,8 @@ import { Navbar } from '&/components/ui/navbar'
 import { Footer } from '&/components/ui/footer'
 
 export const metadata: Metadata = {
-  title: 'Aware',
-  description: 'A web app that analyses text to detect scams in text messages',
+  title: `Aware | AI-Powered Scam Detection Web app for Seniors`,
+  description: `A web app that analyses text to detect scams in text messages`,
 }
 
 export default function RootLayout({

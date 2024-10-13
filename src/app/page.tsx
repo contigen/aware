@@ -3,7 +3,7 @@ import Link from 'next/link'
 
 export default function Home() {
   return (
-    <div className=''>
+    <div>
       <main className='flex-grow container mx-auto p-8'>
         <div className='text-center'>
           <h2 className='text-4xl font-bold mb-6'>Stay Safe from Scams</h2>
