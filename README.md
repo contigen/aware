@@ -12,11 +12,12 @@ The project was built using the Next.js app router, utilising Gemini AI to analy
 
 ## Features
 
-- Input handling for text and images with drag-and-drop, click-to-upload, copy-and-paste via the Clipboard API.
+- Input handling for text and images with drag-and-drop, click-to-upload, copy-and-paste images via the Clipboard API to eliminate friction in the user experience.
 - Text & image analysis capabilities for both quick and in-depth analysis interfaces using Gemini AI via the Vercel AI SDK.
 - Speech-to-text in the indepth-analysis chat UI to improve UX & accessibility.
 - Text-to-speech to read analysis results.
-- Print analysis result using the `react-to-print` library.
+- Print analysis result to create awareness for other users.
+- Scam awareness exercise to improve scam detection & recognition skills
 
 ## What I learned
 
